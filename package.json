@@ -1,0 +1,23 @@
+{
+  "name": "ld-46",
+  "version": "0.0.1",
+  "description": "A game for Ludum Dare 46",
+  "main": "index.js",
+  "dependencies": {
+    "melonjs": "^7.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/a1gemmel/LD-46.git"
+  },
+  "author": "a1gemmel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/a1gemmel/LD-46/issues"
+  },
+  "homepage": "https://github.com/a1gemmel/LD-46#readme"
+}
