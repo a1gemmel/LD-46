@@ -111,10 +111,10 @@ function updateMapLocation() {
 
 function setupControls() {
   const SPEED = 3;
-  let up = keyboard("ArrowUp")
-  let down = keyboard("ArrowDown")
-  let left = keyboard("ArrowLeft")
-  let right = keyboard("ArrowRight")
+  let up = keyboard("w")
+  let down = keyboard("s")
+  let left = keyboard("a")
+  let right = keyboard("d")
 
   up.press = () => {
     state.playerVy = SPEED
