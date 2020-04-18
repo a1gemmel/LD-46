@@ -48,6 +48,8 @@ function setup() {
     app.stage.addChild(fire);
     fire.scale.x = 0.5;
     fire.scale.y = 0.5;
+    fire.anchor.x = 0.5;
+    fire.anchor.y = 0.5;
     fire.x = WINDOW_WIDTH / 2 + 50;
     fire.y = WINDOW_HEIGHT / 2 + 50;
     fire.play()
@@ -92,7 +94,14 @@ let state = {
     mouseY: 0,
     worldItems: [],
     footsteps: [],
-    inventory: {},
+    inventory: {
+      logs: 0,
+      hat: false,
+      jacket: false,
+    },
+    playerTemp: 100,
+    timeToLose: 60,
+    timeToRescue: 300,
 }
 
 function move(arr) {
@@ -119,12 +128,37 @@ function gameLoop(delta) {
     addFootstep()
 
     updatePlayerRotation()
+    calculateBodyHeat()
 
     updateMapLocation()
   
-
+    state.timeToLose -= (1 / 60)
+    state.timeToRescue -= (1 / 60)
+    updateScoreboard()
 }
 
+function updateScoreboard() {
+  let temp = document.getElementById("body-temp")
+  let fireclock = document.getElementById("fire-clock")
+  let logcount = document.getElementById("log-count")
+  let rescueclock = document.getElementById("rescue-clock")
+
+  temp.innerHTML = Math.ceil(state.playerTemp);
+  fireclock.innerHTML = Math.ceil(state.timeToLose);
+  rescueclock.innerHTML = Math.ceil(state.timeToRescue);
+  logcount.innerHTML = state.inventory.logs;
+}
+
+function calculateBodyHeat() {
+  const FIRE_AFFECT_DISTANCE = 300
+  if (distance(fire, player) > FIRE_AFFECT_DISTANCE) {
+    state.playerTemp -= 0.02
+    return
+  }
+  state.playerTemp += 0.005 * Math.sqrt((FIRE_AFFECT_DISTANCE - distance(fire, player)))
+  state.playerTemp = Math.min(100, state.playerTemp)
+
+}
 
 function addFootstep() {
 
@@ -135,12 +169,9 @@ function addFootstep() {
   }
 
   if (state.footsteps.length > 0) {
-    let laststep = state.footsteps[state.footsteps.length - 1]
-    let lastX = laststep.x + (laststep.width / 2)
-    let lastY = laststep.y + (laststep.height / 2)
+    let lastStep = state.footsteps[state.footsteps.length - 1]
 
-    let distance = Math.pow(player.x + (player.width / 4) - lastX, 2) + Math.pow(player.y + (player.height / 4) - lastY, 2)
-    if ( distance < Math.pow(32, 2)) {
+    if ( distance(lastStep, player) < 32) {
       return
     }
   }
@@ -149,10 +180,10 @@ function addFootstep() {
     PIXI.Loader.shared.resources["footsteps.png"].texture
   );
   newStep.rotation = player.rotation
-  newStep.x = player.x
-  newStep.y = player.y
   newStep.anchor.x = 0.5
   newStep.anchor.y = 0.5
+  newStep.x = player.x
+  newStep.y = player.y
   state.footsteps.push(newStep)
   app.stage.addChild(newStep)
 }
@@ -302,4 +333,9 @@ function keyboard(value) {
   };
   
   return key;
+}
+
+function distance(a, b) {
+  let d = Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)
+  return Math.sqrt(d)
 }
