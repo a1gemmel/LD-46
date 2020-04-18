@@ -26,7 +26,7 @@ PIXI.Loader.shared
   .load(setup);
 
 
-let map, fire, player
+let map, fire, player, notifyText
 
 function setup() {
     map = new PIXI.Sprite(
@@ -64,7 +64,22 @@ function setup() {
     plane.y = 332;
     plane.rotation = 0.32
     app.stage.addChild(plane);
+    plane.type = "plane"
     state.worldItems.push(plane);
+
+    notifyText = new PIXI.Text(
+      'This is a PixiJS text',
+      {
+        fontFamily : 'Arial',
+        fontSize: 24, 
+        fill : 0xff1010, 
+        align : 'center'
+      });
+      notifyText.alpha = 0;
+      notifyText.type = "text";
+      state.worldItems.push(notifyText);
+      app.stage.addChild(notifyText);
+
 
     player = new PIXI.Sprite(
       PIXI.Loader.shared.resources["player.png"].texture
@@ -102,6 +117,7 @@ let state = {
     playerTemp: 100,
     timeToLose: 60,
     timeToRescue: 300,
+    fireSize: 60,
 }
 
 function move(arr) {
@@ -111,12 +127,41 @@ function move(arr) {
   }
 }
 
+function setText(text) {
+  notifyText.text = text
+  notifyText.x = player.x + 10;
+  notifyText.y = player.y - 10;
+  notifyText.alpha = 1;
+}
 
-function gameLoop(delta) {
+function pickupItems() {
+  for (let i = 0; i < state.worldItems.length; i++) {
+    let item = state.worldItems[i]
+    if (distance(item, player) < 50) {
+      switch (item.type) {
+        case "log": {
+          state.inventory.logs += 3;
+          state.worldItems.splice(i, 1)
+          item.destroy()
+          setText("+3 wood")
+          return;
+        }
+      }
+    }
+  }
+}
+
+function gameLoop() {
     state.playerX += state.playerVx;
     state.playerY += state.playerVy;
     fire.x += state.playerVx;
     fire.y += state.playerVy;
+
+    if (state.fireSize > 5) {
+      state.fireSize *= 0.998
+    }
+    fire.scale.x = 0.5 * (0.1 + Math.log10(state.fireSize))
+    fire.scale.y = 0.5 * (0.1 + Math.log10(state.fireSize))
 
     move(state.worldItems)
     move(state.footsteps)
@@ -124,11 +169,13 @@ function gameLoop(delta) {
     state.footsteps.forEach(f => {
       f.alpha -= 0.001
     })
+    notifyText.alpha -= 0.01;
 
     addFootstep()
 
     updatePlayerRotation()
     calculateBodyHeat()
+    pickupItems()
 
     updateMapLocation()
   
@@ -152,7 +199,7 @@ function updateScoreboard() {
 function calculateBodyHeat() {
   const FIRE_AFFECT_DISTANCE = 300
   if (distance(fire, player) > FIRE_AFFECT_DISTANCE) {
-    state.playerTemp -= 0.02
+    state.playerTemp -= 0.08
     return
   }
   state.playerTemp += 0.005 * Math.sqrt((FIRE_AFFECT_DISTANCE - distance(fire, player)))
@@ -235,10 +282,15 @@ function generateItems() {
     );
     log.x = Math.random() * 3000
     log.y = Math.random() * 3000
+    log.type = "log"
     app.stage.addChild(log)
     state.worldItems.push(log)
   }
 
+}
+
+function canPlaceWood() {
+  return distance(player, fire) < 200 && state.inventory.logs > 0
 }
 
 function setupControls() {
@@ -280,13 +332,36 @@ function setupControls() {
     }
   };
 
+  let e = keyboard("e")
+  e.press = () => {
+    if (canPlaceWood()) {
+      state.inventory.logs--;
+      let fireAdd = getMarginalFireTimeIncrease()
+      let rescueAdd = getMarginalRescueDecrease()
+      console.log("fire size", state.fireSize, "time add + ", fireAdd, "rescue - ", rescueAdd)
+      state.timeToLose += fireAdd
+      state.fireSize += 10
+      state.timeToRescue -= rescueAdd
+    }
+  }
+
   document.onmousemove = function(e) {
     let game = document.getElementById("game")
     state.mouseX = e.clientX - game.getBoundingClientRect().x
     state.mouseY = e.clientY - game.getBoundingClientRect().y
   }
-
 }
+
+// Adding logs has a log effect (heh) on the time remaining since 
+// it makes a bigger fire
+function getMarginalFireTimeIncrease() {
+  return 60 / state.fireSize
+}
+
+function  getMarginalRescueDecrease() {
+  return Math.log2(state.fireSize / 2)
+}
+
 
 function keyboard(value) {
   let key = {};
