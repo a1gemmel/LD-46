@@ -5,6 +5,9 @@ document.PIXI = PIXI
 
 const WINDOW_HEIGHT = 512, WINDOW_WIDTH = 512
 
+const MAX_FOOTSTEPS = 100;
+const SPEED = 3;
+
 //Create a Pixi Application
 let app = new PIXI.Application({width: WINDOW_WIDTH, height: WINDOW_HEIGHT});
 //Add the canvas that Pixi automatically created for you to the HTML document
@@ -91,7 +94,6 @@ function move(arr) {
 
 
 function gameLoop(delta) {
-
     state.playerX += state.playerVx;
     state.playerY += state.playerVy;
     fire.x += state.playerVx;
@@ -99,6 +101,11 @@ function gameLoop(delta) {
 
     move(state.worldItems)
     move(state.footsteps)
+
+    state.footsteps.forEach(f => {
+      f.alpha -= 0.001
+      console.log(f.alpha)
+    })
 
     addFootstep()
 
@@ -111,6 +118,13 @@ function gameLoop(delta) {
 
 
 function addFootstep() {
+
+
+  if (state.footsteps.length > MAX_FOOTSTEPS) {
+    let toDelete = state.footsteps.shift()
+    toDelete.destroy()
+  }
+
   if (state.footsteps.length > 0) {
     let laststep = state.footsteps[state.footsteps.length - 1]
     let lastX = laststep.x + (laststep.width / 2)
@@ -128,18 +142,14 @@ function addFootstep() {
   newStep.rotation = player.rotation
   newStep.x = player.x
   newStep.y = player.y
+  newStep.anchor.x = 0.5
+  newStep.anchor.y = 0.5
   state.footsteps.push(newStep)
   app.stage.addChild(newStep)
 }
 
 
 function updatePlayerRotation() {
-  //player.rotation = Math.atan((player.y - state.mouseY) / (player.x - state.mouseX)) + Math.PI / 2
-  //if (state.mouseX < player.x) {
-  //  player.rotation += Math.PI;
-  //}
-
-
   if (state.playerVx > 0) {
     if (state.playerVy > 0) {
       player.rotation = Math.PI * 1.75;
@@ -161,8 +171,6 @@ function updatePlayerRotation() {
   } else if (state.playerVy < 0) {
     player.rotation = Math.PI * 1;
   }
-  
-  console.log(state.playerVx, state.playerVy, player.rotation)
 }
 
 
@@ -194,7 +202,6 @@ function generateItems() {
 }
 
 function setupControls() {
-  const SPEED = 3;
   let up = keyboard("w")
   let down = keyboard("s")
   let left = keyboard("a")
@@ -204,7 +211,7 @@ function setupControls() {
     state.playerVy = SPEED
   };
   up.release = () => {
-    if (state.playerVy == SPEED) {
+    if (state.playerVy > 0) {
       state.playerVy = 0
     }
   };
@@ -212,7 +219,7 @@ function setupControls() {
     state.playerVy = -SPEED
   };
   down.release = () => {
-    if (state.playerVy == -SPEED) {
+    if (state.playerVy < 0) {
       state.playerVy = 0
     }
   };
@@ -220,7 +227,7 @@ function setupControls() {
     state.playerVx = SPEED
   };
   left.release = () => {
-    if (state.playerVx == SPEED) {
+    if (state.playerVx > 0) {
       state.playerVx = 0
     }
   };
@@ -228,7 +235,7 @@ function setupControls() {
     state.playerVx = -SPEED
   };
   right.release = () => {
-    if (state.playerVx == -SPEED) {
+    if (state.playerVx < 0) {
       state.playerVx = 0
     }
   };
