@@ -12,25 +12,55 @@ document.getElementById("game").appendChild(app.view);
 
 PIXI.Loader.shared
   .add("map.png")
+  .add("fire-1.png")
+  .add("fire-2.png")
+  .add("fire-3.png")
+  .add("fire-4.png")
+  .add("player.png")
   .load(setup);
 
 
-let mapA, mapB, mapC, mapD
+let map, fire, player
 
 function setup() {
-    mapA = new PIXI.Sprite(
+    map = new PIXI.Sprite(
         PIXI.Loader.shared.resources["map.png"].texture
       );
-    mapA.scale.x = 2;
-    mapA.scale.y = 2;
+    map.scale.x = 2;
+    map.scale.y = 2;
 
-    app.stage.addChild(mapA);
+    app.stage.addChild(map);
+
+    fire = new PIXI.AnimatedSprite(
+      [
+        PIXI.Loader.shared.resources["fire-1.png"].texture,
+        PIXI.Loader.shared.resources["fire-2.png"].texture,
+        PIXI.Loader.shared.resources["fire-3.png"].texture,
+        PIXI.Loader.shared.resources["fire-4.png"].texture,
+      ]
+    )
+    app.stage.addChild(fire);
+    fire.scale.x = 0.5;
+    fire.scale.y = 0.5;
+    fire.x = WINDOW_WIDTH / 2 + 50;
+    fire.y = WINDOW_HEIGHT / 2 + 50;
+    fire.play()
+    fire.animationSpeed = 0.25;
+    
+    player = new PIXI.Sprite(
+      PIXI.Loader.shared.resources["player.png"].texture
+    )
+    player.x = WINDOW_WIDTH / 2;
+    player.y = WINDOW_HEIGHT / 2;
+    player.anchor.x = 0.5
+    player.anchor.y = 0.5
+    player.scale.x = 0.5
+    player.scale.y = 0.5
+
+    app.stage.addChild(player)
 
     setupControls()
-
-
     app.ticker.add(delta => gameLoop(delta));
-
 }
 
 
@@ -39,30 +69,43 @@ let state = {
     playerY: 0,
     playerVx: 0,
     playerVy: 0,
+    fire: fire,
+    mouseX: 0,
+    mouseY: 0,
 }
 
 function gameLoop(delta) {
 
     state.playerX += state.playerVx;
     state.playerY += state.playerVy;
+    fire.x += state.playerVx;
+    fire.y += state.playerVy;
+
+    updatePlayerRotation()
 
     updateMapLocation()
+  
 
+}
+
+function updatePlayerRotation() {
+  player.rotation = Math.atan((player.y - state.mouseY) / (player.x - state.mouseX)) + Math.PI / 2
+  if (state.mouseX < player.x) {
+    player.rotation += Math.PI;
+  }
 }
 
 
 function updateMapLocation() {
-    const halfHeight = WINDOW_HEIGHT / 2
-    const halfWidth = WINDOW_WIDTH / 2 
     
-    mapA.x = (state.playerX % WINDOW_WIDTH)
+    map.x = (state.playerX % WINDOW_WIDTH)
 
-    if (mapA.x > 0) {
-      mapA.x-= WINDOW_WIDTH
+    if (map.x > 0) {
+      map.x-= WINDOW_WIDTH
     }
-    mapA.y = (state.playerY % WINDOW_HEIGHT)
-    if (mapA.y > 0) {
-      mapA.y-= WINDOW_HEIGHT
+    map.y = (state.playerY % WINDOW_HEIGHT)
+    if (map.y > 0) {
+      map.y-= WINDOW_HEIGHT
     }
 }
 
@@ -105,6 +148,13 @@ function setupControls() {
       state.playerVx = 0
     }
   };
+
+  document.onmousemove = function(e) {
+    let game = document.getElementById("game")
+    state.mouseX = e.clientX - game.getBoundingClientRect().x
+    state.mouseY = e.clientY - game.getBoundingClientRect().y
+  }
+
 }
 
 function keyboard(value) {
