@@ -22,6 +22,7 @@ PIXI.Loader.shared
   .add("player.png")
   .add("logs.png")
   .add("footsteps.png")
+  .add("plane.png")
   .load(setup);
 
 
@@ -53,6 +54,15 @@ function setup() {
     fire.animationSpeed = 0.25;
     
     generateItems()
+
+    let plane = new PIXI.Sprite(
+      PIXI.Loader.shared.resources["plane.png"].texture
+    )
+    plane.x = 45;
+    plane.y = 332;
+    plane.rotation = 0.32
+    app.stage.addChild(plane);
+    state.worldItems.push(plane);
 
     player = new PIXI.Sprite(
       PIXI.Loader.shared.resources["player.png"].texture
@@ -104,7 +114,6 @@ function gameLoop(delta) {
 
     state.footsteps.forEach(f => {
       f.alpha -= 0.001
-      console.log(f.alpha)
     })
 
     addFootstep()
