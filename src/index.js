@@ -134,11 +134,37 @@ function addFootstep() {
 
 
 function updatePlayerRotation() {
-  player.rotation = Math.atan((player.y - state.mouseY) / (player.x - state.mouseX)) + Math.PI / 2
-  if (state.mouseX < player.x) {
-    player.rotation += Math.PI;
+  //player.rotation = Math.atan((player.y - state.mouseY) / (player.x - state.mouseX)) + Math.PI / 2
+  //if (state.mouseX < player.x) {
+  //  player.rotation += Math.PI;
+  //}
+
+
+  if (state.playerVx > 0) {
+    if (state.playerVy > 0) {
+      player.rotation = Math.PI * 1.75;
+    } else if (state.playerVy < 0) {
+      player.rotation = Math.PI * 1.25;
+    } else {
+      player.rotation = Math.PI * 1.5;
+    }
+  } else if (state.playerVx < 0) {
+    if (state.playerVy > 0) {
+      player.rotation = Math.PI * 0.25;
+    } else if (state.playerVy < 0) {
+      player.rotation = Math.PI * 0.75;
+    } else {
+      player.rotation = Math.PI * 0.5;
+    }
+  } else if (state.playerVy > 0) {
+    player.rotation = Math.PI * 0;
+  } else if (state.playerVy < 0) {
+    player.rotation = Math.PI * 1;
   }
+  
+  console.log(state.playerVx, state.playerVy, player.rotation)
 }
+
 
 
 function updateMapLocation() {
