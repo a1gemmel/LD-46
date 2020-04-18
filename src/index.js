@@ -18,6 +18,7 @@ PIXI.Loader.shared
   .add("fire-4.png")
   .add("player.png")
   .add("logs.png")
+  .add("footsteps.png")
   .load(setup);
 
 
@@ -77,8 +78,17 @@ let state = {
     mouseX: 0,
     mouseY: 0,
     worldItems: [],
+    footsteps: [],
     inventory: {},
 }
+
+function move(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    arr[i].x += state.playerVx;
+    arr[i].y += state.playerVy;
+  }
+}
+
 
 function gameLoop(delta) {
 
@@ -87,10 +97,10 @@ function gameLoop(delta) {
     fire.x += state.playerVx;
     fire.y += state.playerVy;
 
-    for (let i = 0; i < state.worldItems.length; i++) {
-      state.worldItems[i].x += state.playerVx
-      state.worldItems[i].y += state.playerVy
-    }
+    move(state.worldItems)
+    move(state.footsteps)
+
+    addFootstep()
 
     updatePlayerRotation()
 
@@ -98,6 +108,30 @@ function gameLoop(delta) {
   
 
 }
+
+
+function addFootstep() {
+  if (state.footsteps.length > 0) {
+    let laststep = state.footsteps[state.footsteps.length - 1]
+    let lastX = laststep.x + (laststep.width / 2)
+    let lastY = laststep.y + (laststep.height / 2)
+
+    let distance = Math.pow(player.x + (player.width / 4) - lastX, 2) + Math.pow(player.y + (player.height / 4) - lastY, 2)
+    if ( distance < Math.pow(32, 2)) {
+      return
+    }
+  }
+
+  let newStep = new PIXI.Sprite(
+    PIXI.Loader.shared.resources["footsteps.png"].texture
+  );
+  newStep.rotation = player.rotation
+  newStep.x = player.x
+  newStep.y = player.y
+  state.footsteps.push(newStep)
+  app.stage.addChild(newStep)
+}
+
 
 function updatePlayerRotation() {
   player.rotation = Math.atan((player.y - state.mouseY) / (player.x - state.mouseX)) + Math.PI / 2
