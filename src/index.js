@@ -6,7 +6,9 @@ document.PIXI = PIXI
 const WINDOW_HEIGHT = 512, WINDOW_WIDTH = 512
 
 const MAX_FOOTSTEPS = 100;
-const SPEED = 3;
+
+const COLD_SPEED = 2, WARM_SPEED = 3;
+let SPEED = WARM_SPEED;
 
 //Create a Pixi Application
 let app = new PIXI.Application({width: WINDOW_WIDTH, height: WINDOW_HEIGHT});
@@ -71,7 +73,7 @@ function setup() {
       'This is a PixiJS text',
       {
         fontFamily : 'Arial',
-        fontSize: 24, 
+        fontSize: 16, 
         fill : 0xff1010, 
         align : 'center'
       });
@@ -160,6 +162,10 @@ function gameLoop() {
     if (state.fireSize > 5) {
       state.fireSize *= 0.998
     }
+
+    if (14 < state.timeToLose && state.timeToLose < 15) {
+      setText("Your fire will go out soon...")
+    }
     fire.scale.x = 0.5 * (0.1 + Math.log10(state.fireSize))
     fire.scale.y = 0.5 * (0.1 + Math.log10(state.fireSize))
 
@@ -169,7 +175,7 @@ function gameLoop() {
     state.footsteps.forEach(f => {
       f.alpha -= 0.001
     })
-    notifyText.alpha -= 0.01;
+    notifyText.alpha -= 0.006;
 
     addFootstep()
 
@@ -200,8 +206,21 @@ function calculateBodyHeat() {
   const FIRE_AFFECT_DISTANCE = 300
   if (distance(fire, player) > FIRE_AFFECT_DISTANCE) {
     state.playerTemp -= 0.08
+    if (49 < state.playerTemp && state.playerTemp < 50) {
+      setText("You feel the cold...")
+    }
+    if (24 < state.playerTemp && state.playerTemp < 25) {
+      setText("You are dangerously cold...")
+      SPEED = COLD_SPEED
+      state.playerVx *= (COLD_SPEED / WARM_SPEED)
+      state.playerVy *= (COLD_SPEED / WARM_SPEED)
+    }
     return
   }
+  if (state.playerTemp > 50) {
+    SPEED = WARM_SPEED
+  }
+
   state.playerTemp += 0.005 * Math.sqrt((FIRE_AFFECT_DISTANCE - distance(fire, player)))
   state.playerTemp = Math.min(100, state.playerTemp)
 
