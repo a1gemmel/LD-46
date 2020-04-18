@@ -17,6 +17,7 @@ PIXI.Loader.shared
   .add("fire-3.png")
   .add("fire-4.png")
   .add("player.png")
+  .add("logs.png")
   .load(setup);
 
 
@@ -47,6 +48,8 @@ function setup() {
     fire.play()
     fire.animationSpeed = 0.25;
     
+    generateItems()
+
     player = new PIXI.Sprite(
       PIXI.Loader.shared.resources["player.png"].texture
     )
@@ -58,6 +61,7 @@ function setup() {
     player.scale.y = 0.5
 
     app.stage.addChild(player)
+
 
     setupControls()
     app.ticker.add(delta => gameLoop(delta));
@@ -72,6 +76,8 @@ let state = {
     fire: fire,
     mouseX: 0,
     mouseY: 0,
+    worldItems: [],
+    inventory: {},
 }
 
 function gameLoop(delta) {
@@ -80,6 +86,11 @@ function gameLoop(delta) {
     state.playerY += state.playerVy;
     fire.x += state.playerVx;
     fire.y += state.playerVy;
+
+    for (let i = 0; i < state.worldItems.length; i++) {
+      state.worldItems[i].x += state.playerVx
+      state.worldItems[i].y += state.playerVy
+    }
 
     updatePlayerRotation()
 
@@ -107,6 +118,19 @@ function updateMapLocation() {
     if (map.y > 0) {
       map.y-= WINDOW_HEIGHT
     }
+}
+
+function generateItems() {
+  for (let i = 0; i < 50; i ++) {
+    let log = new PIXI.Sprite(
+      PIXI.Loader.shared.resources["logs.png"].texture
+    );
+    log.x = Math.random() * 3000
+    log.y = Math.random() * 3000
+    app.stage.addChild(log)
+    state.worldItems.push(log)
+  }
+
 }
 
 function setupControls() {
