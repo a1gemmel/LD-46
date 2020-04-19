@@ -97,7 +97,7 @@ export function keyboard(value) {
     }
     let minutes = Math.floor(seconds / 60)
     seconds = seconds % 60
-    return  minutes + (minutes > 1) ? " minutes " : " minute " + 
-        seconds + (seconds == 0 || seconds > 1) ? " seconds" : "second"
+    return minutes + ((minutes > 1) ? " minutes " : " minute ") + 
+        seconds + ((seconds == 0 || seconds > 1) ? " seconds" : "second")
   }
 

@@ -183,7 +183,7 @@ function dying() {
     i++;
     state.worldItems.forEach(item => item.alpha -=0.002)
     map.alpha-=0.009
-    deadPlayer.alpha -=0.0005
+    deadPlayer.alpha -=0.001
   }
 }
 
@@ -210,7 +210,7 @@ let state = {
     jacket: false,
   },
   playerTemp: 100,
-  timeToLose: 60,
+  timeToLose: 30,
   timeSurvived: 0,
   fireSize: 60,
   welcomed: false,
@@ -599,7 +599,7 @@ function setupControls() {
 // Adding logs has a log effect (heh) on the time remaining since 
 // it makes a bigger fire
 function getMarginalFireTimeIncrease() {
-  return 60 / state.fireSize
+  return 70 / state.fireSize
 }
 
 function getMarginalRescueDecrease() {
