@@ -9,6 +9,16 @@ export const GameItems = {
       rotate: true,
       solid: false,
     },
+    thermos: {
+        count: 12,
+        rotate: false,
+        solid: false,
+    },
+    snowshoes: {
+        count: 1,
+        rotate: false,
+        solid: false,
+    },
     logs: {
       count: 50,
       rotate: false,

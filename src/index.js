@@ -23,6 +23,7 @@ PIXI.Loader.shared
   .add("player.png")
   .add("logs.png")
   .add("footsteps.png")
+  .add("footsteps-snowshoe.png")
   .add("plane.png")
   .add("toque.png")
   .add("mittens.png")
@@ -34,6 +35,8 @@ PIXI.Loader.shared
   .add("rock-3.png")
   .add("rock-4.png")
   .add("shrub.png")
+  .add("thermos.png")
+  .add("snowshoes.png")
   .load(setup);
 
 
@@ -43,8 +46,6 @@ function setup() {
     map = new PIXI.Sprite(
         PIXI.Loader.shared.resources["map.png"].texture
       );
-    map.scale.x = 2;
-    map.scale.y = 2;
     map.solid = false;
     app.stage.addChild(map);
 
@@ -65,7 +66,7 @@ function setup() {
     fire.y = Game.WINDOW_HEIGHT / 2 + 150;
     fire.play()
     fire.animationSpeed = 0.25;
-    fire.solid = true;
+    fire.solid = false;
     fire.type = "fire";
     state.worldItems.push(fire);
     
@@ -151,6 +152,8 @@ function gameLoop() {
       state.fireSize *= 0.998
     }
 
+    console.log(state.playerVx, state.playerVy)
+
     addFootstep()
     updatePlayerRotation()
     let [actualVx, actualVy] = updatePlayerPosition()
@@ -197,14 +200,10 @@ function updatePlayerPosition() {
     // it's something we can pick up
     if (!item.solid) {
       if (distance(item, player) < 50) {
-        switch (item.type) {
-          case "logs": {
-            state.inventory.logs += 3;
-            state.worldItems.splice(i, 1)
-            item.destroy()
-            setText("+3 wood")
-            break;
-          }
+        let pickedUp = tryPickupItem(item)
+        if (pickedUp) {
+          state.worldItems.splice(i, 1)
+          item.destroy()
         }
       }
       continue;
@@ -242,6 +241,51 @@ function updatePlayerPosition() {
   return [state.playerVx, state.playerVy];
 }
 
+function tryPickupItem(item) {
+  switch (item.type) {
+    case "logs": {
+      state.inventory.logs += 3;
+      setText("logs (+3 wood)")
+      return true
+    }
+    case "shrub": {
+      state.inventory.logs += 1;
+      setText("shrub (+1 wood)")
+      return true
+    }
+    case "mittens": {
+      state.inventory.mittens = true;
+      if (state.inventory.toque) {
+        player.texture = PIXI.Loader.shared.resources["player-hat-mittens.png"].texture
+      } else {
+        player.texture = PIXI.Loader.shared.resources["player-mittens.png"].texture
+      }
+      setText(`mittens (+${Game.MITTENS_BUFF}% max warmth`)
+      return true
+    }
+    case "toque": {
+      state.inventory.toque = true;
+      if (state.inventory.mittens) {
+        player.texture = PIXI.Loader.shared.resources["player-hat-mittens.png"].texture
+      } else {
+        player.texture = PIXI.Loader.shared.resources["player-hat.png"].texture
+      }
+      setText(`toque (-${Game.TOQUE_BUFF}% freeze rate)`)
+      return true
+    }
+    case "thermos": {
+      state.playerTemp += Game.THERMOS_BUFF;
+      setText(`hot thermos (+${Game.THERMOS_BUFF}% instant warmth)`)
+      return true
+    }
+    case "snowshoes": {
+      state.inventory.snowshoes = true;
+      setText(`snowshoes (+${Game.SNOWSHOE_BUFF}% speed)`)
+      return true
+    }
+  }
+}
+
 function updateScoreboard() {
   let temp = document.getElementById("body-temp")
   let fireclock = document.getElementById("fire-clock")
@@ -257,24 +301,33 @@ function updateScoreboard() {
 function calculateBodyHeat() {
   const FIRE_AFFECT_DISTANCE = 300
   if (distance(fire, player) > FIRE_AFFECT_DISTANCE) {
-    state.playerTemp -= 0.08
+    state.playerTemp -= (0.08 * (state.inventory.toque ? (1 - Game.TOQUE_BUFF / 100) : 1))
     if (49 < state.playerTemp && state.playerTemp < 50) {
       setText("You feel the cold...")
     }
     if (24 < state.playerTemp && state.playerTemp < 25) {
       setText("You are dangerously cold...")
       SPEED = Game.COLD_SPEED
-      state.playerVx *= (Game.COLD_SPEED / Game.WARM_SPEED)
-      state.playerVy *= (Game.COLD_SPEED / Game.WARM_SPEED)
+      if (state.playerVx != 0) {
+        state.playerVx = SPEED * (state.playerVx > 0) ? 1 : -1
+      }
+      if (state.playerVy != 0) {
+        state.playerVy = SPEED * (state.playerVy > 0) ? 1 : -1
+      }
     }
     return
   }
   if (state.playerTemp > 50) {
     SPEED = Game.WARM_SPEED
   }
+  if (state.inventory.snowshoes) {
+    SPEED *= Game.SNOWSHOE_BUFF / 100
+  }
+
 
   state.playerTemp += 0.005 * Math.sqrt((FIRE_AFFECT_DISTANCE - distance(fire, player)))
-  state.playerTemp = Math.min(100, state.playerTemp)
+  let maxWarmth = 100 + (state.inventory.mittens ? Game.MITTENS_BUFF : 0)
+  state.playerTemp = Math.min(maxWarmth, state.playerTemp)
 
 }
 
@@ -292,8 +345,9 @@ function addFootstep() {
     }
   }
 
+  let asset = state.inventory.snowshoes ? "footsteps-snowshoe.png" : "footsteps.png";
   let newStep = new PIXI.Sprite(
-    PIXI.Loader.shared.resources["footsteps.png"].texture
+    PIXI.Loader.shared.resources[asset].texture
   );
   newStep.rotation = player.rotation
   newStep.anchor.x = 0.5
