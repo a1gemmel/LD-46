@@ -52,18 +52,6 @@ export function keyboard(value) {
     return Math.sqrt(d)
   }
 
-//   export function colliding(spriteA, spriteB) {
-//     let ab = spriteA.getBounds()
-//     let bb = spriteB.getBounds()
-//     let c = ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
-//     if (c) {
-//         console.log(spriteA.type, spriteB.type, "collided")
-//         console.log("distance:", distance(spriteA, spriteB))
-//         //drawBoundingBox(spriteA)
-//         //drawBoundingBox(spriteB)
-//     }
-//     return c
-//   }
 
   export function colliding(player, object) {
       let pbox = player.getBounds()

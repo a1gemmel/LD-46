@@ -2,24 +2,32 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Hello World</title>
+  <title>Tundra</title>
   <link type="text/css" rel="stylesheet" href="main.css">
 </head> 
 <body>
   <div id="game-container">
-    <h1>Dying in the Tundra Simulator 2020</h1>
-    <div id="game"></div>
+    <h1>Tundra</h1>
+    <div id="game">
+
+      <div id="score">
+        <div id=body-temp-container>
+          <img id=body-temp-icon src="icon-warm.png" alt="Body Warmth">
+          <span id="body-temp"></span>
+        </div>
+        <div id=fire-clock-container>
+          <img src="fire-icon.png" alt="Fire">
+          <span id="fire-clock"></span><span>s</span>
+        </div>
+        <div id=game-timer-container>
+          <span>Survived </span><span id=game-timer></span>
+        </div>
+      </div>
+      <div id="inventory">
+        <span id="log-count"></span><span> Wood</span><br>
+      </div>
+    </div>
   </div>
-  <div id="score">
-    <h2>Scoreboard</h2>
-    <span>Time until fire goes out: </span><span id="fire-clock"></span><br>
-    <span>Estimated time until rescue:</span><span id="rescue-clock"></span><br>
-    <span>Warmth: </span><span id="body-temp"></span><span>%</span><br>
-  </div>
-  <div id="inventory">
-    <h2>Inventory</h2>
-    <span>Wood: </span><span id="log-count"></span><br>
-  </div>
-  <script src="main.js"></script>
+      <script src="main.js"></script>
 </body>
 </html>

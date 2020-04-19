@@ -68,6 +68,13 @@ function setup() {
   fire.animationSpeed = 0.25;
   fire.solid = false;
   fire.type = "fire";
+
+  let fireCircle = new PIXI.Graphics();
+  fireCircle.lineStyle(3, 0xC9701C)
+  fireCircle.drawCircle(fire.x, fire.y, Game.FIRE_AFFECT_DISTANCE)
+  fireCircle.alpha = 0.5;
+  app.stage.addChild(fireCircle);
+  state.worldItems.push(fireCircle)
   state.worldItems.push(fire);
 
   generateItems()
@@ -278,6 +285,8 @@ function tryPickupItem(item) {
     case "snowshoes": {
       state.inventory.snowshoes = true;
       setText(`snowshoes (+${Game.SNOWSHOE_BUFF}% speed)`)
+      Game.WARM_SPEED *= 1 + Game.SNOWSHOE_BUFF / 100
+      Game.SLOW_SPEED *= 1 + Game.SNOWSHOE_BUFF / 100
       return true
     }
   }
@@ -287,17 +296,18 @@ function updateScoreboard() {
   let temp = document.getElementById("body-temp")
   let fireclock = document.getElementById("fire-clock")
   let logcount = document.getElementById("log-count")
-  let rescueclock = document.getElementById("rescue-clock")
 
-  temp.innerHTML = Math.ceil(state.playerTemp);
+  temp.style["padding-left"] = state.playerTemp + "px";
+  temp.style.backgroundColor = Game.colorForTemp(state.playerTemp);
+  document.getElementById("body-temp-icon").src = Game.iconForTemp(state.playerTemp);
+
+
   fireclock.innerHTML = Math.ceil(state.timeToLose);
-  rescueclock.innerHTML = Math.ceil(state.timeToRescue);
   logcount.innerHTML = state.inventory.logs;
 }
 
 function calculateBodyHeat() {
-  const FIRE_AFFECT_DISTANCE = 300
-  if (distance(fire, player) > FIRE_AFFECT_DISTANCE) {
+  if (distance(fire, player) > Game.FIRE_AFFECT_DISTANCE) {
     state.playerTemp -= (0.08 * (state.inventory.toque ? (1 - Game.TOQUE_BUFF / 100) : 1))
     if (49 < state.playerTemp && state.playerTemp < 50) {
       setText("You feel the cold...")
@@ -317,12 +327,8 @@ function calculateBodyHeat() {
   if (state.playerTemp > 50) {
     SPEED = Game.WARM_SPEED
   }
-  if (state.inventory.snowshoes) {
-    SPEED *= Game.SNOWSHOE_BUFF / 100
-  }
 
-
-  state.playerTemp += 0.005 * Math.sqrt((FIRE_AFFECT_DISTANCE - distance(fire, player)))
+  state.playerTemp += 0.005 * Math.sqrt((Game.FIRE_AFFECT_DISTANCE - distance(fire, player)))
   let maxWarmth = 100 + (state.inventory.mittens ? Game.MITTENS_BUFF : 0)
   state.playerTemp = Math.min(maxWarmth, state.playerTemp)
 
