@@ -1,7 +1,7 @@
 "use strict;"
 import * as PIXI from "pixi.js"
-import {GameItems} from "./items.js"
-import {keyboard, distance, colliding, addBoundingBox} from "./util.js"
+import { GameItems } from "./items.js"
+import { keyboard, distance, colliding, addBoundingBox } from "./util.js"
 import * as Game from "./const.js"
 
 document.PIXI = PIXI
@@ -10,7 +10,7 @@ let SPEED = Game.WARM_SPEED;
 
 
 //Create a Pixi Application
-let app = new PIXI.Application({width: Game.WINDOW_WIDTH, height: Game.WINDOW_HEIGHT});
+let app = new PIXI.Application({ width: Game.WINDOW_WIDTH, height: Game.WINDOW_HEIGHT });
 //Add the canvas that Pixi automatically created for you to the HTML document
 document.getElementById("game").appendChild(app.view);
 
@@ -43,99 +43,99 @@ PIXI.Loader.shared
 let map, fire, player, notifyText
 
 function setup() {
-    map = new PIXI.Sprite(
-        PIXI.Loader.shared.resources["map.png"].texture
-      );
-    map.solid = false;
-    app.stage.addChild(map);
+  map = new PIXI.Sprite(
+    PIXI.Loader.shared.resources["map.png"].texture
+  );
+  map.solid = false;
+  app.stage.addChild(map);
 
-    fire = new PIXI.AnimatedSprite(
-      [
-        PIXI.Loader.shared.resources["fire-1.png"].texture,
-        PIXI.Loader.shared.resources["fire-2.png"].texture,
-        PIXI.Loader.shared.resources["fire-3.png"].texture,
-        PIXI.Loader.shared.resources["fire-4.png"].texture,
-      ]
-    )
-    app.stage.addChild(fire);
-    fire.scale.x = 0.5;
-    fire.scale.y = 0.5;
-    fire.anchor.x = 0.5;
-    fire.anchor.y = 0.5;
-    fire.x = Game.WINDOW_WIDTH / 2 + 150;
-    fire.y = Game.WINDOW_HEIGHT / 2 + 150;
-    fire.play()
-    fire.animationSpeed = 0.25;
-    fire.solid = false;
-    fire.type = "fire";
-    state.worldItems.push(fire);
-    
-    generateItems()
+  fire = new PIXI.AnimatedSprite(
+    [
+      PIXI.Loader.shared.resources["fire-1.png"].texture,
+      PIXI.Loader.shared.resources["fire-2.png"].texture,
+      PIXI.Loader.shared.resources["fire-3.png"].texture,
+      PIXI.Loader.shared.resources["fire-4.png"].texture,
+    ]
+  )
+  app.stage.addChild(fire);
+  fire.scale.x = 0.5;
+  fire.scale.y = 0.5;
+  fire.anchor.x = 0.5;
+  fire.anchor.y = 0.5;
+  fire.x = Game.WINDOW_WIDTH / 2 + 150;
+  fire.y = Game.WINDOW_HEIGHT / 2 + 150;
+  fire.play()
+  fire.animationSpeed = 0.25;
+  fire.solid = false;
+  fire.type = "fire";
+  state.worldItems.push(fire);
 
-    let plane = new PIXI.Sprite(
-      PIXI.Loader.shared.resources["plane.png"].texture
-    )
-    plane.x = 45;
-    plane.y = 332;
-    plane.rotation = 0.32
-    app.stage.addChild(plane);
-    plane.type = "plane";
-    plane.solid = false;
-    state.worldItems.push(plane);
+  generateItems()
 
-    notifyText = new PIXI.Text(
-      'This is a PixiJS text',
-      {
-        fontFamily : 'Arial',
-        fontSize: 16, 
-        fill : 0xff1010, 
-        align : 'center'
-      });
-      notifyText.alpha = 0;
-      notifyText.type = "text";
-      state.worldItems.push(notifyText);
-      app.stage.addChild(notifyText);
+  let plane = new PIXI.Sprite(
+    PIXI.Loader.shared.resources["plane.png"].texture
+  )
+  plane.x = 45;
+  plane.y = 332;
+  plane.rotation = 0.32
+  app.stage.addChild(plane);
+  plane.type = "plane";
+  plane.solid = false;
+  state.worldItems.push(plane);
 
-
-    player = new PIXI.Sprite(
-      PIXI.Loader.shared.resources["player.png"].texture
-    )
-    player.x = Game.WINDOW_WIDTH / 2;
-    player.y = Game.WINDOW_HEIGHT / 2;
-    player.anchor.x = 0.5
-    player.anchor.y = 0.5
-    player.scale.x = 0.5
-    player.scale.y = 0.5
-    player.type = "player";
-    //addBoundingBox(player)
-
-    app.stage.addChild(player)
+  notifyText = new PIXI.Text(
+    'This is a PixiJS text',
+    {
+      fontFamily: 'Arial',
+      fontSize: 16,
+      fill: 0xff1010,
+      align: 'center'
+    });
+  notifyText.alpha = 0;
+  notifyText.type = "text";
+  state.worldItems.push(notifyText);
+  app.stage.addChild(notifyText);
 
 
-    setupControls()
-    app.ticker.add(delta => gameLoop(delta));
+  player = new PIXI.Sprite(
+    PIXI.Loader.shared.resources["player.png"].texture
+  )
+  player.x = Game.WINDOW_WIDTH / 2;
+  player.y = Game.WINDOW_HEIGHT / 2;
+  player.anchor.x = 0.5
+  player.anchor.y = 0.5
+  player.scale.x = 0.5
+  player.scale.y = 0.5
+  player.type = "player";
+  //addBoundingBox(player)
+
+  app.stage.addChild(player)
+
+
+  setupControls()
+  app.ticker.add(delta => gameLoop(delta));
 }
 
 
 let state = {
-    playerX: 0,
-    playerY: 0,
-    playerVx: 0,
-    playerVy: 0,
-    fire: fire,
-    mouseX: 0,
-    mouseY: 0,
-    worldItems: [],
-    footsteps: [],
-    inventory: {
-      logs: 0,
-      hat: false,
-      jacket: false,
-    },
-    playerTemp: 100,
-    timeToLose: 60,
-    timeToRescue: 300,
-    fireSize: 60,
+  playerX: 0,
+  playerY: 0,
+  playerVx: 0,
+  playerVy: 0,
+  fire: fire,
+  mouseX: 0,
+  mouseY: 0,
+  worldItems: [],
+  footsteps: [],
+  inventory: {
+    logs: 0,
+    hat: false,
+    jacket: false,
+  },
+  playerTemp: 100,
+  timeToLose: 60,
+  timeToRescue: 300,
+  fireSize: 60,
 }
 
 
@@ -148,44 +148,42 @@ function setText(text) {
 }
 
 function gameLoop() {
-    if (state.fireSize > 5) {
-      state.fireSize *= 0.998
+  if (state.fireSize > 5) {
+    state.fireSize *= 0.998
+  }
+
+  addFootstep()
+  updatePlayerRotation()
+  let [actualVx, actualVy] = updatePlayerPosition()
+  calculateBodyHeat()
+  updateMapLocation()
+
+  if (14 < state.timeToLose && state.timeToLose < 15) {
+    setText("Your fire will go out soon...")
+  }
+  fire.scale.x = 0.5 * (0.1 + Math.log10(state.fireSize))
+  fire.scale.y = 0.5 * (0.1 + Math.log10(state.fireSize))
+
+  function move(arr) {
+    for (let i = 0; i < arr.length; i++) {
+      arr[i].x += actualVx;
+      arr[i].y += actualVy;
     }
+  }
 
-    console.log(state.playerVx, state.playerVy)
+  move(state.worldItems)
+  move(state.footsteps)
 
-    addFootstep()
-    updatePlayerRotation()
-    let [actualVx, actualVy] = updatePlayerPosition()
-    calculateBodyHeat()
-    updateMapLocation()
-
-    if (14 < state.timeToLose && state.timeToLose < 15) {
-      setText("Your fire will go out soon...")
-    }
-    fire.scale.x = 0.5 * (0.1 + Math.log10(state.fireSize))
-    fire.scale.y = 0.5 * (0.1 + Math.log10(state.fireSize))
-
-    function move(arr) {
-      for (let i = 0; i < arr.length; i++) {
-        arr[i].x += actualVx;
-        arr[i].y += actualVy;
-      }
-    }
-
-    move(state.worldItems)
-    move(state.footsteps)
-
-    state.footsteps.forEach(f => {
-      f.alpha -= 0.001
-    })
-    notifyText.alpha -= 0.006;
+  state.footsteps.forEach(f => {
+    f.alpha -= 0.001
+  })
+  notifyText.alpha -= 0.006;
 
 
-  
-    state.timeToLose -= (1 / 60)
-    state.timeToRescue -= (1 / 60)
-    updateScoreboard()
+
+  state.timeToLose -= (1 / 60)
+  state.timeToRescue -= (1 / 60)
+  updateScoreboard()
 }
 
 function updatePlayerPosition() {
@@ -196,7 +194,7 @@ function updatePlayerPosition() {
 
   for (let i = 0; i < state.worldItems.length; i++) {
     let item = state.worldItems[i]
-    
+
     // it's something we can pick up
     if (!item.solid) {
       if (distance(item, player) < 50) {
@@ -211,9 +209,8 @@ function updatePlayerPosition() {
 
     // it's something we can walk into
     if (colliding(player, item)) {
-      
       // try just the X move
-      player.y = oldY
+      player.y = Math.round(oldY)
       if (!colliding(player, item)) {
         // // go on to check collision with other objects
         player.x = oldX;
@@ -340,7 +337,7 @@ function addFootstep() {
   if (state.footsteps.length > 0) {
     let lastStep = state.footsteps[state.footsteps.length - 1]
 
-    if ( distance(lastStep, player) < 32) {
+    if (distance(lastStep, player) < 32) {
       return
     }
   }
@@ -386,33 +383,33 @@ function updatePlayerRotation() {
 
 
 function updateMapLocation() {
-    
-    map.x = (state.playerX % Game.WINDOW_WIDTH)
 
-    if (map.x > 0) {
-      map.x-= Game.WINDOW_WIDTH
-    }
-    map.y = (state.playerY % Game.WINDOW_HEIGHT)
-    if (map.y > 0) {
-      map.y-= Game.WINDOW_HEIGHT
-    }
+  map.x = (state.playerX % Game.WINDOW_WIDTH)
+
+  if (map.x > 0) {
+    map.x -= Game.WINDOW_WIDTH
+  }
+  map.y = (state.playerY % Game.WINDOW_HEIGHT)
+  if (map.y > 0) {
+    map.y -= Game.WINDOW_HEIGHT
+  }
 }
 
 function generateItems() {
-  const setRandomPos = function(sprite) {
+  const setRandomPos = function (sprite) {
     sprite.x = (0.5 - Math.random()) * 3000
     sprite.y = (0.5 - Math.random()) * 3000
     if (Math.abs(sprite.x) < 150 && Math.abs(sprite.y) < 150) {
       setRandomPos(sprite);
-    } 
+    }
   }
-  
-  Object.keys(GameItems).forEach(function(item) {
+
+  Object.keys(GameItems).forEach(function (item) {
     const data = GameItems[item]
     for (let i = 0; i < data.count; i++) {
       const sprite = new PIXI.Sprite(
         PIXI.Loader.shared.resources[item + ".png"].texture
-        )
+      )
       setRandomPos(sprite)
       // if (data.rotate) {
       //   sprite.rotation = Math.random() * Math.PI * 2
@@ -486,7 +483,7 @@ function setupControls() {
     }
   }
 
-  document.onmousemove = function(e) {
+  document.onmousemove = function (e) {
     let game = document.getElementById("game")
     state.mouseX = e.clientX - game.getBoundingClientRect().x
     state.mouseY = e.clientY - game.getBoundingClientRect().y
@@ -499,6 +496,6 @@ function getMarginalFireTimeIncrease() {
   return 60 / state.fireSize
 }
 
-function  getMarginalRescueDecrease() {
+function getMarginalRescueDecrease() {
   return Math.log2(state.fireSize / 2)
 }

@@ -69,8 +69,8 @@ export function keyboard(value) {
       let pbox = player.getBounds()
       let obox = object.getBounds()
 
-      let px = pbox.x + 0.5 * pbox.width;
-      let py = pbox.y + 0.5 * pbox.height;
+      let px = Math.round(pbox.x + 0.5 * pbox.width);
+      let py = Math.round(pbox.y + 0.5 * pbox.height);
 
       let testX = px
       let testY = py
@@ -82,8 +82,8 @@ export function keyboard(value) {
       }
       if (py < obox.y) {
         testY = obox.y;        // top edge
-      } else if (pbox.y > obox.y + obox.height) {
-        testY = obox.y + obox.height; // bottom edge
+      } else if (py > obox.y + obox.height) {
+        testY = Math.floor(obox.y + obox.height); // bottom edge
       }
 
       let radius = 12;
@@ -91,13 +91,7 @@ export function keyboard(value) {
       let distY = py - testY;
       let distance = Math.sqrt((distX*distX) + (distY*distY));
 
-      const c = distance <= radius
-      if (c) {
-          console.log(object.type, distance, radius)
-      }
-
-      return c
-
+      return distance <= radius
     }
 
   export function addBoundingBox(sprite) {
