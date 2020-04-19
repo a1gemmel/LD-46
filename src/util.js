@@ -52,18 +52,53 @@ export function keyboard(value) {
     return Math.sqrt(d)
   }
 
-  export function colliding(spriteA, spriteB) {
-    let ab = spriteA.getBounds()
-    let bb = spriteB.getBounds()
-    let c = ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
-    if (c) {
-        console.log(spriteA.type, spriteB.type, "collided")
-        console.log("distance:", distance(spriteA, spriteB))
-        //drawBoundingBox(spriteA)
-        //drawBoundingBox(spriteB)
+//   export function colliding(spriteA, spriteB) {
+//     let ab = spriteA.getBounds()
+//     let bb = spriteB.getBounds()
+//     let c = ab.x + ab.width > bb.x && ab.x < bb.x + bb.width && ab.y + ab.height > bb.y && ab.y < bb.y + bb.height;
+//     if (c) {
+//         console.log(spriteA.type, spriteB.type, "collided")
+//         console.log("distance:", distance(spriteA, spriteB))
+//         //drawBoundingBox(spriteA)
+//         //drawBoundingBox(spriteB)
+//     }
+//     return c
+//   }
+
+  export function colliding(player, object) {
+      let pbox = player.getBounds()
+      let obox = object.getBounds()
+
+      let px = pbox.x + 0.5 * pbox.width;
+      let py = pbox.y + 0.5 * pbox.height;
+
+      let testX = px
+      let testY = py
+
+      if (px < obox.x) {
+          testX = obox.x;        // left edge
+      } else if (px > obox.x + obox.width) {
+          testX = obox.x + obox.width; // right edge
+      }
+      if (py < obox.y) {
+        testY = obox.y;        // top edge
+      } else if (pbox.y > obox.y + obox.height) {
+        testY = obox.y + obox.height; // bottom edge
+      }
+
+      let radius = 12;
+      let distX = px - testX;
+      let distY = py - testY;
+      let distance = Math.sqrt((distX*distX) + (distY*distY));
+
+      const c = distance <= radius
+      if (c) {
+          console.log(object.type, distance, radius)
+      }
+
+      return c
+
     }
-    return c
-  }
 
   export function addBoundingBox(sprite) {
     let boundingBox = new PIXI.Graphics();
