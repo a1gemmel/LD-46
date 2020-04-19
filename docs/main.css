@@ -12,8 +12,13 @@
     transform: translate(-50%, -50%);
 }
 
+#game {
+    border: 2px solid black;
+    border-radius: 4px;
+}
+
 body {
-   background-color: #ddd; 
+   background-color: #ccc; 
 }
 
 
