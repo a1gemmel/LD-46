@@ -237,7 +237,7 @@ function gameLoop() {
   }
 
   if (state.fireSize > 5) {
-    state.fireSize *= 0.998
+    state.fireSize *= 0.9975
   }
 
   if (state.timeToLose <= 0) {
@@ -461,7 +461,7 @@ function addFootstep() {
   newStep.x = player.x
   newStep.y = player.y
   state.footsteps.push(newStep)
-  app.stage.addChild(newStep)
+  app.stage.addChildAt(newStep, 1)
 }
 
 
