@@ -10,6 +10,8 @@ const MAX_FOOTSTEPS = 100;
 const COLD_SPEED = 2, WARM_SPEED = 3;
 let SPEED = WARM_SPEED;
 
+const WOOD_PLACE_DISTANCE = 200;
+
 //Create a Pixi Application
 let app = new PIXI.Application({width: WINDOW_WIDTH, height: WINDOW_HEIGHT});
 //Add the canvas that Pixi automatically created for you to the HTML document
@@ -25,6 +27,11 @@ PIXI.Loader.shared
   .add("logs.png")
   .add("footsteps.png")
   .add("plane.png")
+  .add("toque.png")
+  .add("mittens.png")
+  .add("player-hat-mittens.png")
+  .add("player-hat.png")
+  .add("player-mittens.png")
   .load(setup);
 
 
@@ -309,7 +316,7 @@ function generateItems() {
 }
 
 function canPlaceWood() {
-  return distance(player, fire) < 200 && state.inventory.logs > 0
+  return distance(player, fire) < WOOD_PLACE_DISTANCE && state.inventory.logs > 0
 }
 
 function setupControls() {
