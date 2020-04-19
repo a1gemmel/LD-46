@@ -90,10 +90,14 @@ export function keyboard(value) {
     sprite.addChild(boundingBox)
   }
 
-  function drawBoundingBox(sprite) {
-    let boundingBox = new PIXI.Graphics();
-    boundingBox.lineStyle(1, 0xFF0000);
-    let bb = sprite.getBounds();
-    boundingBox.drawRect(bb.x, bb.y, bb.width, bb.height);
-    sprite.parent.addChild(boundingBox)
+  export function formatTime(seconds) {
+    seconds = Math.ceil(seconds)  
+    if (seconds < 60) {
+        return seconds + " seconds"
+    }
+    let minutes = Math.floor(seconds / 60)
+    seconds = seconds % 60
+    return  minutes + (minutes > 1) ? " minutes " : " minute " + 
+        seconds + (seconds == 0 || seconds > 1) ? " seconds" : "second"
   }
+

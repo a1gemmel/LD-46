@@ -9,6 +9,21 @@
   <div id="game-container">
     <h1>Tundra</h1>
     <div id="game">
+      
+      <div id="welcome-screen" class="modal">
+        Your plane has crashed.<br>
+        Welcome to the tundra.<br>
+        Forage for fuel for your fire.<br>
+        Stay alive long enough for help to come.<br>
+        <button id="welcome-button">
+          Begin
+        </button>
+      </div>
+
+      <div id="death-screen" class="modal">
+        You survived for <span id=end-time></span>.<br>
+        But nobody came.
+      </div>
 
       <div id="score">
         <div id=body-temp-container>
@@ -17,7 +32,7 @@
         </div>
         <div id=fire-clock-container>
           <img src="fire-icon.png" alt="Fire">
-          <span id="fire-clock"></span><span>s</span>
+          <span id="fire-clock"></span>
         </div>
         <div id=game-timer-container>
           <span>Survived </span><span id=game-timer></span>
@@ -27,6 +42,9 @@
         <span id="log-count"></span><span> Wood</span><br>
       </div>
     </div>
+    WASD - Move
+    <br>
+    E - Add wood to fire
   </div>
       <script src="main.js"></script>
 </body>
