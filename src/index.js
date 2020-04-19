@@ -1,19 +1,16 @@
 "use strict;"
 import * as PIXI from "pixi.js"
+import {GameItems} from "./items.js"
+import {keyboard, distance, colliding, addBoundingBox} from "./util.js"
+import * as Game from "./const.js"
 
 document.PIXI = PIXI
 
-const WINDOW_HEIGHT = 512, WINDOW_WIDTH = 512
+let SPEED = Game.WARM_SPEED;
 
-const MAX_FOOTSTEPS = 100;
-
-const COLD_SPEED = 2, WARM_SPEED = 3;
-let SPEED = WARM_SPEED;
-
-const WOOD_PLACE_DISTANCE = 200;
 
 //Create a Pixi Application
-let app = new PIXI.Application({width: WINDOW_WIDTH, height: WINDOW_HEIGHT});
+let app = new PIXI.Application({width: Game.WINDOW_WIDTH, height: Game.WINDOW_HEIGHT});
 //Add the canvas that Pixi automatically created for you to the HTML document
 document.getElementById("game").appendChild(app.view);
 
@@ -32,6 +29,11 @@ PIXI.Loader.shared
   .add("player-hat-mittens.png")
   .add("player-hat.png")
   .add("player-mittens.png")
+  .add("rock-1.png")
+  .add("rock-2.png")
+  .add("rock-3.png")
+  .add("rock-4.png")
+  .add("shrub.png")
   .load(setup);
 
 
@@ -43,7 +45,7 @@ function setup() {
       );
     map.scale.x = 2;
     map.scale.y = 2;
-
+    map.solid = false;
     app.stage.addChild(map);
 
     fire = new PIXI.AnimatedSprite(
@@ -59,10 +61,13 @@ function setup() {
     fire.scale.y = 0.5;
     fire.anchor.x = 0.5;
     fire.anchor.y = 0.5;
-    fire.x = WINDOW_WIDTH / 2 + 50;
-    fire.y = WINDOW_HEIGHT / 2 + 50;
+    fire.x = Game.WINDOW_WIDTH / 2 + 150;
+    fire.y = Game.WINDOW_HEIGHT / 2 + 150;
     fire.play()
     fire.animationSpeed = 0.25;
+    fire.solid = true;
+    fire.type = "fire";
+    state.worldItems.push(fire);
     
     generateItems()
 
@@ -73,7 +78,8 @@ function setup() {
     plane.y = 332;
     plane.rotation = 0.32
     app.stage.addChild(plane);
-    plane.type = "plane"
+    plane.type = "plane";
+    plane.solid = false;
     state.worldItems.push(plane);
 
     notifyText = new PIXI.Text(
@@ -93,12 +99,14 @@ function setup() {
     player = new PIXI.Sprite(
       PIXI.Loader.shared.resources["player.png"].texture
     )
-    player.x = WINDOW_WIDTH / 2;
-    player.y = WINDOW_HEIGHT / 2;
+    player.x = Game.WINDOW_WIDTH / 2;
+    player.y = Game.WINDOW_HEIGHT / 2;
     player.anchor.x = 0.5
     player.anchor.y = 0.5
     player.scale.x = 0.5
     player.scale.y = 0.5
+    player.type = "player";
+    //addBoundingBox(player)
 
     app.stage.addChild(player)
 
@@ -129,12 +137,7 @@ let state = {
     fireSize: 60,
 }
 
-function move(arr) {
-  for (let i = 0; i < arr.length; i++) {
-    arr[i].x += state.playerVx;
-    arr[i].y += state.playerVy;
-  }
-}
+
 
 function setText(text) {
   notifyText.text = text
@@ -143,38 +146,29 @@ function setText(text) {
   notifyText.alpha = 1;
 }
 
-function pickupItems() {
-  for (let i = 0; i < state.worldItems.length; i++) {
-    let item = state.worldItems[i]
-    if (distance(item, player) < 50) {
-      switch (item.type) {
-        case "log": {
-          state.inventory.logs += 3;
-          state.worldItems.splice(i, 1)
-          item.destroy()
-          setText("+3 wood")
-          return;
-        }
-      }
-    }
-  }
-}
-
 function gameLoop() {
-    state.playerX += state.playerVx;
-    state.playerY += state.playerVy;
-    fire.x += state.playerVx;
-    fire.y += state.playerVy;
-
     if (state.fireSize > 5) {
       state.fireSize *= 0.998
     }
+
+    addFootstep()
+    updatePlayerRotation()
+    let [actualVx, actualVy] = updatePlayerPosition()
+    calculateBodyHeat()
+    updateMapLocation()
 
     if (14 < state.timeToLose && state.timeToLose < 15) {
       setText("Your fire will go out soon...")
     }
     fire.scale.x = 0.5 * (0.1 + Math.log10(state.fireSize))
     fire.scale.y = 0.5 * (0.1 + Math.log10(state.fireSize))
+
+    function move(arr) {
+      for (let i = 0; i < arr.length; i++) {
+        arr[i].x += actualVx;
+        arr[i].y += actualVy;
+      }
+    }
 
     move(state.worldItems)
     move(state.footsteps)
@@ -184,17 +178,68 @@ function gameLoop() {
     })
     notifyText.alpha -= 0.006;
 
-    addFootstep()
 
-    updatePlayerRotation()
-    calculateBodyHeat()
-    pickupItems()
-
-    updateMapLocation()
   
     state.timeToLose -= (1 / 60)
     state.timeToRescue -= (1 / 60)
     updateScoreboard()
+}
+
+function updatePlayerPosition() {
+  let oldX = player.x;
+  let oldY = player.y;
+  player.x -= state.playerVx;
+  player.y -= state.playerVy;
+
+  for (let i = 0; i < state.worldItems.length; i++) {
+    let item = state.worldItems[i]
+    
+    // it's something we can pick up
+    if (!item.solid) {
+      if (distance(item, player) < 50) {
+        switch (item.type) {
+          case "logs": {
+            state.inventory.logs += 3;
+            state.worldItems.splice(i, 1)
+            item.destroy()
+            setText("+3 wood")
+            break;
+          }
+        }
+      }
+      continue;
+    }
+
+    // it's something we can walk into
+    if (colliding(player, item)) {
+      
+      // try just the X move
+      player.y = oldY
+      if (!colliding(player, item)) {
+        // // go on to check collision with other objects
+        player.x = oldX;
+        state.playerX += state.playerVx;
+        return [state.playerVx, 0];
+      }
+      // try just the Y move
+      player.y = oldY - state.playerVy
+      player.x = oldX
+      if (!colliding(player, item)) {
+        player.y = oldY;
+        state.playerY += state.playerVy;
+        return [0, state.playerVy]
+      } else {
+        player.x = oldX;
+        player.y = oldY;
+        return [0, 0]
+      }
+    }
+  }
+  player.x = oldX;
+  player.y = oldY;
+  state.playerX += state.playerVx;
+  state.playerY += state.playerVy;
+  return [state.playerVx, state.playerVy];
 }
 
 function updateScoreboard() {
@@ -218,14 +263,14 @@ function calculateBodyHeat() {
     }
     if (24 < state.playerTemp && state.playerTemp < 25) {
       setText("You are dangerously cold...")
-      SPEED = COLD_SPEED
-      state.playerVx *= (COLD_SPEED / WARM_SPEED)
-      state.playerVy *= (COLD_SPEED / WARM_SPEED)
+      SPEED = Game.COLD_SPEED
+      state.playerVx *= (Game.COLD_SPEED / Game.WARM_SPEED)
+      state.playerVy *= (Game.COLD_SPEED / Game.WARM_SPEED)
     }
     return
   }
   if (state.playerTemp > 50) {
-    SPEED = WARM_SPEED
+    SPEED = Game.WARM_SPEED
   }
 
   state.playerTemp += 0.005 * Math.sqrt((FIRE_AFFECT_DISTANCE - distance(fire, player)))
@@ -234,9 +279,7 @@ function calculateBodyHeat() {
 }
 
 function addFootstep() {
-
-
-  if (state.footsteps.length > MAX_FOOTSTEPS) {
+  if (state.footsteps.length > Game.MAX_FOOTSTEPS) {
     let toDelete = state.footsteps.shift()
     toDelete.destroy()
   }
@@ -290,33 +333,51 @@ function updatePlayerRotation() {
 
 function updateMapLocation() {
     
-    map.x = (state.playerX % WINDOW_WIDTH)
+    map.x = (state.playerX % Game.WINDOW_WIDTH)
 
     if (map.x > 0) {
-      map.x-= WINDOW_WIDTH
+      map.x-= Game.WINDOW_WIDTH
     }
-    map.y = (state.playerY % WINDOW_HEIGHT)
+    map.y = (state.playerY % Game.WINDOW_HEIGHT)
     if (map.y > 0) {
-      map.y-= WINDOW_HEIGHT
+      map.y-= Game.WINDOW_HEIGHT
     }
 }
 
 function generateItems() {
-  for (let i = 0; i < 50; i ++) {
-    let log = new PIXI.Sprite(
-      PIXI.Loader.shared.resources["logs.png"].texture
-    );
-    log.x = Math.random() * 3000
-    log.y = Math.random() * 3000
-    log.type = "log"
-    app.stage.addChild(log)
-    state.worldItems.push(log)
+  const setRandomPos = function(sprite) {
+    sprite.x = (0.5 - Math.random()) * 3000
+    sprite.y = (0.5 - Math.random()) * 3000
+    if (Math.abs(sprite.x) < 150 && Math.abs(sprite.y) < 150) {
+      setRandomPos(sprite);
+    } 
   }
+  
+  Object.keys(GameItems).forEach(function(item) {
+    const data = GameItems[item]
+    for (let i = 0; i < data.count; i++) {
+      const sprite = new PIXI.Sprite(
+        PIXI.Loader.shared.resources[item + ".png"].texture
+        )
+      setRandomPos(sprite)
+      // if (data.rotate) {
+      //   sprite.rotation = Math.random() * Math.PI * 2
+      // }
+      sprite.type = item
+      sprite.solid = data.solid
 
+      if (Game.DEBUG) {
+        addBoundingBox(sprite)
+      }
+
+      app.stage.addChild(sprite)
+      state.worldItems.push(sprite)
+    }
+  })
 }
 
 function canPlaceWood() {
-  return distance(player, fire) < WOOD_PLACE_DISTANCE && state.inventory.logs > 0
+  return distance(player, fire) < Game.WOOD_PLACE_DISTANCE && state.inventory.logs > 0
 }
 
 function setupControls() {
@@ -386,57 +447,4 @@ function getMarginalFireTimeIncrease() {
 
 function  getMarginalRescueDecrease() {
   return Math.log2(state.fireSize / 2)
-}
-
-
-function keyboard(value) {
-  let key = {};
-  key.value = value;
-  key.isDown = false;
-  key.isUp = true;
-  key.press = undefined;
-  key.release = undefined;
-  //The `downHandler`
-  key.downHandler = event => {
-    if (event.key === key.value) {
-      if (key.isUp && key.press) key.press();
-      key.isDown = true;
-      key.isUp = false;
-      event.preventDefault();
-    }
-  };
-
-  //The `upHandler`
-  key.upHandler = event => {
-    if (event.key === key.value) {
-      if (key.isDown && key.release) key.release();
-      key.isDown = false;
-      key.isUp = true;
-      event.preventDefault();
-    }
-  };
-
-  //Attach event listeners
-  const downListener = key.downHandler.bind(key);
-  const upListener = key.upHandler.bind(key);
-  
-  window.addEventListener(
-    "keydown", downListener, false
-  );
-  window.addEventListener(
-    "keyup", upListener, false
-  );
-  
-  // Detach event listeners
-  key.unsubscribe = () => {
-    window.removeEventListener("keydown", downListener);
-    window.removeEventListener("keyup", upListener);
-  };
-  
-  return key;
-}
-
-function distance(a, b) {
-  let d = Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)
-  return Math.sqrt(d)
 }
