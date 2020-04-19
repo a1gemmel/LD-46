@@ -520,7 +520,6 @@ function generateItems() {
         PIXI.Loader.shared.resources[item + ".png"].texture
       )
       let range = data.spawn ? data.spawn : Game.DEFAULT_SPAWN_RANGE
-      console.log("spawning ", item, "up to ", range) 
       setRandomPos(sprite, range)
       sprite.type = item
       sprite.solid = data.solid
@@ -584,7 +583,6 @@ function setupControls() {
       state.inventory.logs--;
       let fireAdd = getMarginalFireTimeIncrease()
       let rescueAdd = getMarginalRescueDecrease()
-      console.log("fire size", state.fireSize, "time add + ", fireAdd, "rescue - ", rescueAdd)
       state.timeToLose += fireAdd
       state.fireSize += 10
       state.timeToRescue -= rescueAdd
